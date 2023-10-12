@@ -1,0 +1,37 @@
+
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+iface lo inet6 loopback
+
+auto enp53s0
+iface enp53s0 inet static
+\# route 138.201.20.192/26 via 138.201.20.193
+	address 95.217.199.101/26
+	gateway 95.217.199.65
+
+	up route add -net 95.217.199.101 netmask 255.255.255.192 gw 95.217.199.65 dev enp53s0
+
+auto vmbr0
+iface vmbr0 inet static
+	address 10.0.2.1/24
+	bridge-ports none
+	bridge-stp off
+	bridge-fd 0
+
+	post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+
+	post-up iptables -t nat -A POSTROUTING -s '10.0.2.0/24' -o enp53s0 -j MASQUERADE
+	post-down iptables -t nat -D POSTROUTING -s '10.0.2.0/24' -o enp53s0 -j MASQUERADE
+
+auto vmbr100
+iface vmbr100 inet static
+#reverseproxy
+	address 10.0.100.1/24
+	bridge-ports none
+	bridge-stp off
+	bridge-fd 0
+	
+	post-up iptables -t nat -A POSTROUTING -s '10.0.100.0/24' -o enp53s0 -j MASQUERADE
+	post-down iptables -t nat -D POSTROUTING -s '10.0.100.0/24' -o enp53s0 -j MASQUERADE
