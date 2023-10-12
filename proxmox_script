@@ -1,0 +1,8 @@
+curl http://download.proxmox.com/iso/proxmox-ve_8.0-2.iso --output proxmox.iso
+disks=( $(lsblk | grep -E disk | grep nv | awk '{print $1;}') )
+for thingie in ${disks[@]}; do
+echo $thingie
+done
+diskstring=$(for disk in ${disks[@]}; do echo "-drive file=/dev/$disk,format=raw,media=disk"; done)
+command="qemu-system-x86_64 -enable-kvm -smp 4 -m 4096 -boot d -cdrom ./proxmox.iso $diskstring -vnc 127.0.0.1:1"
+$command
